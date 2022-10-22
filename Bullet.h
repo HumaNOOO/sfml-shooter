@@ -4,15 +4,17 @@
 
 class Bullet
 {
-	sf::Clock clk;
-	double m_sine;
-	double m_cosine;
-	double m_life_time;
+	float m_sine;
+	float m_cosine;
+	float m_life_time;
+	short m_damage;
 public:
-	Bullet(double, sf::Vector2f, double, double);
+	Bullet(float, sf::Vector2f, float, float, short);
 	void step(double);
 	void draw_bullet(sf::RenderWindow&);
 	void should_destroy(std::vector<Bullet*>&, double&);
+	sf::Vector2f get_sin_cos();
+	int get_bullet_damage();
 	sf::RectangleShape bullet;
 };
 

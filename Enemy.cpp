@@ -1,4 +1,5 @@
 #include "Enemy.h"
+#include "Timer.h"
 
 void destroy_enemy(Enemy* e, std::vector<Enemy*>& ve)
 {
@@ -9,12 +10,16 @@ void destroy_enemy(Enemy* e, std::vector<Enemy*>& ve)
 
 Enemy::Enemy(sf::Vector2f position)
 {
-	Enemy::enemy.setFillColor(sf::Color::Red);
+	Enemy::enemy.setFillColor(sf::Color::Black);
+	Enemy::enemy.setOutlineColor(sf::Color::Red);
+	Enemy::enemy.setOutlineThickness(1);
 	Enemy::enemy.setPosition(position);
 	Enemy::enemy.setSize(sf::Vector2f(50, 50));
-	Enemy::health_bar.setSize(sf::Vector2f(50, 5));
+	Enemy::health_bar.setSize(sf::Vector2f(50, 1));
 	Enemy::health_bar.setPosition(position.x, position.y + 52);
-	Enemy::health_bar.setFillColor(sf::Color(155,155,155));
+	Enemy::health_bar.setFillColor(sf::Color(190, 190, 190));
+	Enemy::health_bar.setOutlineColor(sf::Color(190, 190, 190));
+	Enemy::health_bar.setOutlineThickness(1);
 	Enemy::health = 100;
 }
 
@@ -26,13 +31,15 @@ void Enemy::draw_enemy(sf::RenderWindow& w)
 
 void Enemy::should_die(std::vector<Bullet*>& bullet_vec, std::vector<Enemy*>& ev, int& pts, int& cash)
 {
+	//Timer t;
 	for (int i = 0; i < bullet_vec.size(); i++)
 	{
-		if (bullet_vec[i]->bullet.getPosition().x > Enemy::enemy.getPosition().x && bullet_vec[i]->bullet.getPosition().x < Enemy::enemy.getPosition().x + Enemy::enemy.getSize().x &&
-			bullet_vec[i]->bullet.getPosition().y > Enemy::enemy.getPosition().y && bullet_vec[i]->bullet.getPosition().y < Enemy::enemy.getPosition().y + Enemy::enemy.getSize().y)
+		sf::Vector2f bullet_pos_transformed(bullet_vec[i]->bullet.getPosition().x + bullet_vec[i]->get_sin_cos().y * 50, bullet_vec[i]->bullet.getPosition().y + bullet_vec[i]->get_sin_cos().x * 50);
+		if (bullet_pos_transformed.x > Enemy::enemy.getPosition().x && bullet_pos_transformed.x < Enemy::enemy.getPosition().x + Enemy::enemy.getSize().x &&
+			bullet_pos_transformed.y > Enemy::enemy.getPosition().y && bullet_pos_transformed.y < Enemy::enemy.getPosition().y + Enemy::enemy.getSize().y)
 		{
-			Enemy::health -= 20;
-			Enemy::health_bar.setSize(sf::Vector2f(Enemy::health_bar.getSize().x - 10, 5));
+			Enemy::health -= bullet_vec[i]->get_bullet_damage();
+			Enemy::health_bar.setSize(sf::Vector2f(Enemy::health_bar.getSize().x - 10, 1));
 			if (health <= 0)
 			{
 				destroy_enemy(this, ev);
@@ -48,6 +55,7 @@ void Enemy::should_die(std::vector<Bullet*>& bullet_vec, std::vector<Enemy*>& ev
 			}
 		}
 	}
+	//std::cout << "should_die";
 }
 
 void Enemy::step(double dt, sf::Vector2f player_pos)

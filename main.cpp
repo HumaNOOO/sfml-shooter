@@ -1,27 +1,8 @@
-#include <iostream>
 #include <ctime>
 #include "Enemy.h"
 #include "Bullet.h"
 #include "Debug.h"
-#include <chrono>
-
-class Timer
-{
-	std::chrono::time_point<std::chrono::system_clock> start;
-	std::chrono::time_point<std::chrono::system_clock> stop;
-public:
-	Timer()
-	{
-		start = std::chrono::system_clock::now();
-	}
-
-	~Timer()
-	{
-		stop = std::chrono::system_clock::now();
-		long long total = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
-		std::cout << "time: " << total << " microseconds\n";
-	}
-};
+#include "Player.h"
 
 int main()
 {
@@ -32,30 +13,20 @@ int main()
 
 	srand(time(0));
 	DebugInfo debug_info;
+	Player player;
 	sf::Vertex v1[2];
 	sf::Vertex v2[2];
 	sf::Vertex v3[2];
 	bool pause = false;
 	int pts{};
 	bool debug = false;
-	bool lock = false;
 	int cash = 0;
-	double last_dt{};
-	int last_fps{};
-	double fps_update{};
-	double angle{};
-	double sine{};
-	double cosine{};
 	int accuracy = 100;
-	sf::Vector2i mp_last{};
-	double distance_last{};
 	sf::CircleShape point(3.f);
+	point.setOrigin(3, 3);
 	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "2D Shooter", sf::Style::Close);
 	window.setMouseCursorVisible(0);
-	sf::CircleShape shape(50.f);
-	shape.setPosition(300, 300);
-	shape.setOrigin(50.f, 50.f);
-	shape.setFillColor(sf::Color::Green);
+	//shape.setFillColor(sf::Color::Green);
 	sf::Sprite cursor;
 	sf::Texture texture;
 	texture.loadFromFile("crosshair0.png");
@@ -96,49 +67,43 @@ int main()
 				return 0;
 			}
 
-			if (event.type == sf::Event::KeyPressed)
+			if (event.type == sf::Event::KeyReleased)
 			{
 				if (event.key.code == sf::Keyboard::Escape) pause = pause ? false : true;
 
-				if (event.key.code == sf::Keyboard::U && cash >= 50 && shot_delay > 0.02)
+				if (event.key.code == sf::Keyboard::U && cash >= 50)
 				{
-					shot_delay -= 0.005;
-					cash -= 50;
+					if (player.get_shot_delay() >= 0.02)
+					{
+						player.set_shot_delay(player.get_shot_delay() - 0.005);
+						cash -= 50;
+					}
 				}
 
-				if (event.key.code == sf::Keyboard::Y && cash >= 50 && accuracy > 0)
+				if (event.key.code == sf::Keyboard::Y && cash >= 50)
 				{
-					accuracy -= 10;
-					cash -= 50;
+					if (player.get_inaccuracy() >= 1)
+					{
+						player.set_inaccuracy(player.get_inaccuracy() - 10);
+						cash -= 50;
+					}
 				}
+
+				if (event.key.code == sf::Keyboard::F3) debug = debug ? false : true;
 			}
 		}
+		player.set_points(pts);
+		player.set_cash(cash);
 
 		sf::Vector2i mp = sf::Mouse::getPosition(window);
+		if (!pause) player.move(dt, WINDOW_WIDTH, WINDOW_HEIGHT, mp);
 
 		if (mp.y < 0) window.setMouseCursorVisible(1);
 		else window.setMouseCursorVisible(0);
 
 		if (!pause)
 		{
-			angle = atan2(mp.y - shape.getPosition().y, mp.x - shape.getPosition().x);
-			sine = sin(angle);
-			cosine = cos(angle);
-
-			shot_clk_d -= dt;
-			if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && shot_clk_d <= 0)
-			{
-				double angle_r;
-				double sine_r;
-				double cosine_r;
-
-				accuracy > 0 ? angle_r = angle + (((rand() % accuracy) - (accuracy/2)) / 100.0) : angle_r = angle;
-
-				sine_r = sin(angle_r);
-				cosine_r = cos(angle_r);
-				shot_clk_d = shot_delay;
-				bullets_vec.insert(bullets_vec.begin(), new Bullet(angle_r, sf::Vector2f(shape.getPosition().x, shape.getPosition().y), sine_r, cosine_r));
-			}
+			player.shoot(bullets_vec, dt);
 
 			spawn_delay -= dt;
 			if (spawn_delay <= 0)
@@ -146,48 +111,10 @@ int main()
 				spawn_delay = 0.33;
 				enemy_vec.insert(enemy_vec.begin(), new Enemy(sf::Vector2f(rand() % WINDOW_WIDTH, rand() % WINDOW_HEIGHT)));
 			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			{
-				shape.move(-dt * 250, 0.f);
-				if (shape.getPosition().x < 0-50) shape.setPosition(WINDOW_WIDTH, shape.getPosition().y);
-			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			{
-				shape.move(dt * 250, 0.f);
-				if (shape.getPosition().x > WINDOW_WIDTH+50) shape.setPosition(0-50, shape.getPosition().y);
-			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			{
-				shape.move(0.f, -dt * 250);
-				if (shape.getPosition().y < 0-50) shape.setPosition(shape.getPosition().x, WINDOW_HEIGHT-50);
-			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			{
-				shape.move(0.f, dt * 250);
-				if (shape.getPosition().y > WINDOW_HEIGHT+50) shape.setPosition(shape.getPosition().x, 0-50);
-			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::F3) && !lock)
-			{
-				lock = true;
-				debug = debug ? false : true;
-			}
-			else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F3))
-			{
-				lock = false;
-			}
 		}
 
-		str = std::string("points: " + std::to_string(pts) + '\n' + "cash: " + std::to_string(cash) + '$');
-		pts_text.setString(str);
-		pts_text.setPosition(shape.getPosition().x - 65, shape.getPosition().y - 120);
-
-		debug_info.update(1/dt, dt * 1000, angle, sqrt(pow(mp.x - shape.getPosition().x, 2) + pow(mp.y - shape.getPosition().y, 2)), mp, shape.getPosition(),
-			bullets_vec.size(), enemy_vec.size(), sine, cosine, sizeof(Bullet), sizeof(Enemy), pause);
+		debug_info.update(1 / dt, dt * 1000, player.player_sprite.getRotation(), sqrt(pow(mp.x - player.player_sprite.getPosition().x, 2) + pow(mp.y - player.player_sprite.getPosition().y, 2)), mp, player.player_sprite.getPosition(),
+			bullets_vec.size(), enemy_vec.size(), sizeof(Bullet), sizeof(Enemy), pause);
 
 		if (mp.y < 0)
 		{
@@ -198,8 +125,9 @@ int main()
 			window.setMouseCursorVisible(0);
 		}
 		cursor.setPosition(sf::Vector2f(mp.x, mp.y));
+		cursor.rotate(dt * 100);
 		window.clear();
-		window.draw(shape);
+		player.draw_player(window);
 
 		for (Enemy* e : enemy_vec)
 		{
@@ -208,7 +136,7 @@ int main()
 				e->draw_enemy(window);
 				if (!pause)
 				{
-					e->step(dt, shape.getPosition());
+					e->step(dt, player.player_sprite.getPosition());
 					e->should_die(bullets_vec, enemy_vec, pts, cash);
 				}
 			}
@@ -231,13 +159,13 @@ int main()
 		{
 			if (!pause)
 			{
-				v1[0].position = shape.getPosition();
-				v1[1].position = sf::Vector2f(mp.x, shape.getPosition().y);
+				v1[0].position = player.player_sprite.getPosition();
+				v1[1].position = sf::Vector2f(mp.x, player.player_sprite.getPosition().y);
 
-				v2[0].position = sf::Vector2f(mp.x, shape.getPosition().y);
+				v2[0].position = sf::Vector2f(mp.x, player.player_sprite.getPosition().y);
 				v2[1].position = sf::Vector2f(mp.x, mp.y);
 
-				v3[0].position = shape.getPosition();
+				v3[0].position = player.player_sprite.getPosition();
 				v3[1].position = sf::Vector2f(mp.x, mp.y);
 			}
 
@@ -246,11 +174,10 @@ int main()
 			window.draw(v3, 2, sf::Lines);
 		}
 
-
-		window.draw(pts_text);
 		window.draw(text);
 		if (debug)
 		{
+			window.draw(point);
 			debug_info.draw_debug(window);
 		}
 		if (mp.y < 0)
