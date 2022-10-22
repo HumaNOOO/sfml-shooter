@@ -10,7 +10,7 @@ int main()
 	std::vector<Bullet*> bullets_vec;
 	const int WINDOW_WIDTH = 1920;
 	const int WINDOW_HEIGHT = 1080;
-
+	std::cout << "S\n";
 	srand(time(0));
 	DebugInfo debug_info;
 	Player player;
@@ -49,7 +49,8 @@ int main()
 	double delay = 0;
 	double shot_clk_d = 0;
 	double shot_delay = 0.2;
-	double spawn_delay = 0;
+	double spawn_delay = 0;	
+	std::string cheat;
 
 	while (window.isOpen())
 	{
@@ -67,13 +68,23 @@ int main()
 				return 0;
 			}
 
+			if (event.type == sf::Event::TextEntered)
+			{
+				if (event.text.unicode < 128) cheat += (char)event.text.unicode;
+				if (cheat.find("cash") != std::string::npos)
+				{
+					cash += 10000;
+					cheat.clear();
+				}
+			}
+
 			if (event.type == sf::Event::KeyReleased)
 			{
 				if (event.key.code == sf::Keyboard::Escape) pause = pause ? false : true;
 
 				if (event.key.code == sf::Keyboard::U && cash >= 50)
 				{
-					if (player.get_shot_delay() >= 0.02)
+					if (player.get_shot_delay() >= 0.006)
 					{
 						player.set_shot_delay(player.get_shot_delay() - 0.005);
 						cash -= 50;
@@ -89,9 +100,20 @@ int main()
 					}
 				}
 
+				if (event.key.code == sf::Keyboard::T && cash >= 50)
+				{
+					if (player.get_damage() <= 90)
+					{
+						player.set_damage(player.get_damage() + 10);
+						cash -= 50;
+					}
+				}
+
 				if (event.key.code == sf::Keyboard::F3) debug = debug ? false : true;
+
 			}
 		}
+
 		player.set_points(pts);
 		player.set_cash(cash);
 
@@ -127,7 +149,6 @@ int main()
 		cursor.setPosition(sf::Vector2f(mp.x, mp.y));
 		cursor.rotate(dt * 100);
 		window.clear();
-		player.draw_player(window);
 
 		for (Enemy* e : enemy_vec)
 		{
@@ -155,6 +176,7 @@ int main()
 			}
 		}
 
+		player.draw_player(window);
 		if (debug)
 		{
 			if (!pause)

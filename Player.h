@@ -23,8 +23,10 @@ public:
 	void set_points(short);
 	void set_inaccuracy(short);
 	void set_cash(short);
+	void set_damage(short);
 	int get_cash();
 	int get_inaccuracy();
+	int get_damage();
 	void set_shot_delay(double);
 	float get_shot_delay();
 	sf::Sprite player_sprite;

@@ -16,7 +16,7 @@ Player::Player()
 	Player::text.setFont(Player::font);
 	Player::text.setScale(0.6, 0.6);
 	Player::text.setString("points: " + std::to_string(Player::points).append("\ncash: " + Player::cash + '$'));
-	Player::damage = 20;
+	Player::damage = 10;
 	srand(time(0));
 }
 
@@ -64,7 +64,7 @@ void Player::shoot(std::vector<Bullet*>& bullet_vec, const double& dt)
 			double res = (rand() % inaccuracy - inaccuracy / 2) / 100.0;
 			radians_r += res;
 		}
-		bullet_vec.push_back(new Bullet(radians_r, sf::Vector2f(Player::player_sprite.getPosition().x + cos(radians) * 80, Player::player_sprite.getPosition().y + sin(radians) * 80), sin(radians_r), cos(radians_r), Player::damage));
+		bullet_vec.push_back(new Bullet(radians_r, sf::Vector2f(Player::player_sprite.getPosition().x + cos(radians) * 76, Player::player_sprite.getPosition().y + sin(radians) * 76), sin(radians_r), cos(radians_r), Player::damage));
 	}
 }
 
@@ -101,6 +101,16 @@ void Player::set_shot_delay(double amount)
 float Player::get_shot_delay()
 {
 	return this->shot_delay;
+}
+
+int Player::get_damage()
+{
+	return this->damage;
+}
+
+void Player::set_damage(short amount)
+{
+	Player::damage = amount;
 }
 
 void Player::draw_player(sf::RenderWindow& w)

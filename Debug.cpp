@@ -17,7 +17,7 @@ void DebugInfo::update(int fps, double frame_time, double angle, double distance
 			.append("\nangle(deg): " + std::to_string(angle))
 			.append("\ndistance(pixels): " + std::to_string(distance))
 			.append("\nmouse pos(x,y): (" + std::to_string(mouse_pos.x) + "," + std::to_string(mouse_pos.y) + ")")
-			.append("\ncircle pos(x,y): (" + std::to_string(circle_pos.x) + "," + std::to_string(circle_pos.y) + ")")
+			.append("\nplayer pos(x,y): (" + std::to_string(circle_pos.x) + "," + std::to_string(circle_pos.y) + ")")
 			.append("\nnumber of:")
 			.append("\nbullets: " + std::to_string(number_of_bullets))
 			.append("\nenemies: " + std::to_string(number_of_enemies))
