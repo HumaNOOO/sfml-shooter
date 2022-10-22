@@ -10,7 +10,6 @@ int main()
 	std::vector<Bullet*> bullets_vec;
 	const int WINDOW_WIDTH = 1920;
 	const int WINDOW_HEIGHT = 1080;
-	std::cout << "S\n";
 	srand(time(0));
 	DebugInfo debug_info;
 	Player player;
