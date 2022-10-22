@@ -10,6 +10,8 @@ int main()
 	std::vector<Bullet*> bullets_vec;
 	const int WINDOW_WIDTH = 1920;
 	const int WINDOW_HEIGHT = 1080;
+	int randx{};
+	int randy{};
 	srand(time(0));
 	DebugInfo debug_info;
 	Player player;
@@ -33,6 +35,7 @@ int main()
 	cursor.setOrigin(64, 64);
 	cursor.setScale(0.5, 0.5);
 	std::string str;
+	float lvl = 6;
 
 	sf::Font font;
 	font.loadFromFile("font.ttf");
@@ -126,11 +129,28 @@ int main()
 		{
 			player.shoot(bullets_vec, dt);
 
+			delay += shot_clk.restart().asSeconds();
+			if (delay >= 10)
+			{
+				delay = 0;
+				lvl -= 0.5;
+			}
+
+			if (lvl <= 0.5) lvl = 0.5;
+
 			spawn_delay -= dt;
 			if (spawn_delay <= 0)
 			{
-				spawn_delay = 0.33;
-				enemy_vec.insert(enemy_vec.begin(), new Enemy(sf::Vector2f(rand() % WINDOW_WIDTH, rand() % WINDOW_HEIGHT)));
+				spawn_delay = lvl;
+				randx = rand() % WINDOW_WIDTH;
+				randy = rand() % WINDOW_HEIGHT;
+				
+				while (sqrt(pow(randx - player.player_sprite.getPosition().x, 2) + pow(randy - player.player_sprite.getPosition().y, 2)) < 300)
+				{
+					randx = rand() % WINDOW_WIDTH;
+					randy = rand() % WINDOW_HEIGHT;
+				}
+				enemy_vec.insert(enemy_vec.begin(), new Enemy(sf::Vector2f(randx, randy)));
 			}
 		}
 
